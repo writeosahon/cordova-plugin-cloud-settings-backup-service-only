@@ -1,4 +1,4 @@
-package com.cloakedninjas.cordova.plugins;
+package cordova.plugin.cloudsettings;
 
 import android.app.backup.BackupManager;
 import android.content.Context;
@@ -18,9 +18,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class Backup extends CordovaPlugin {
+public class CloudSettingsPlugin extends CordovaPlugin {
 
-    static final String LOG_TAG = "CordovaBackupPlugin";
+    static final String LOG_TAG = "CloudSettingsPlugin";
     static final Object sDataLock = new Object();
 
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {

@@ -1,43 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        id="cordova-plugin-backup" version="1.0.0">
-    <name>Backup</name>
-    <description>Cordova Backup Plugin</description>
-    <license>Apache 2.0</license>
-    <keywords>cordova,backup</keywords>
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="cordova-plugin-cloud-settings"
+        version="1.0.0">
 
-    <js-module src="www/backup.js" name="Backup">
-        <clobbers target="plugins.backup" />
+    <name>Cloud Settings</name>
+    <description>Cordova Cloud Settings Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,backup,cloud,settings,icloud</keywords>
+
+    <js-module src="www/cloudsettings.js" name="CloudSettingsPlugin">
+        <clobbers target="cordova.plugin.cloudsettings" />
     </js-module>
 
     <platform name="android">
         <preference name="BACKUP_SERVICE_KEY" />
 
-        <!-- Save backup key for use during build process -->
-        <source-file src="src/android/backup_service_key_param.xml" target-dir="res/values/" />
-        <config-file target="res/values/backup_service_key_param.xml" parent="/*">
-            <string name="backup_service_key">$BACKUP_SERVICE_KEY</string>
-        </config-file>
-
-        <config-file target="AndroidManifest.xml" parent="/manifest">
+       <config-file target="AndroidManifest.xml" parent="/manifest">
            <!-- Write-file Permission -->
            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
        </config-file>
 
-        <hook type="after_plugin_install" src="src/scripts/installDeps.js" />
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <meta-data android:name="com.google.android.backup.api_key" android:value="$BACKUP_SERVICE_KEY" />
+        </config-file>
 
-        <!-- Cordova doesn't allow adding of XML attributes - modify XML via hook -->
-        <hook type="before_build" src="src/scripts/addAndroidBackupAgent.js" />
+        <edit-config file="AndroidManifest.xml" target="/manifest/application" mode="merge">
+            <application android:allowBackup="true" android:backupAgent="cordova.plugin.cloudsettings.BackupAgentHelper" />
+        </edit-config>
 
-        <!-- Cleanup if plugin is removed -->
-        <hook type="before_plugin_rm" src="src/scripts/removeAndroidBackupAgent.js" />
-
-        <source-file src="src/android/com/cloakedninjas/cordova/plugins/Backup.java" target-dir="src/com/cloakedninjas/cordova/plugins" />
-        <source-file src="src/android/com/cloakedninjas/cordova/plugins/BackupAgentHelper.java" target-dir="src/com/cloakedninjas/cordova/plugins" />
+        <source-file src="src/android/CloudSettingsPlugin.java" target-dir="src/cordova/plugin/cloudsettings" />
+        <source-file src="src/android/BackupAgentHelper.java" target-dir="src/cordova/plugin/cloudsettings" />
 
         <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="Backup" >
-                <param name="android-package" value="com.cloakedninjas.cordova.plugins.Backup"/>
+            <feature name="CloudSettingsPlugin" >
+                <param name="android-package" value="cordova.plugin.cloudsettings.CloudSettingsPlugin"/>
             </feature>
         </config-file>
     </platform>

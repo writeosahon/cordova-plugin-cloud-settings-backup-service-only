@@ -1,32 +1,24 @@
-# Cordova Backup Plugin
+Cordova Cloud Settings Plugin
 
-### ⚠ Warning ⚠
-This plugin is untested. In my development I was only able to successfully backup once, subsequent calls to `saveBackup()` never fully propogated to the Backup Transport agent on my testing device. Upon calling `checkForRestore()` I would always get my initial data packet. Whether this is an issue with my device, app or Android is still unknown to me.
-
-http://stackoverflow.com/questions/31436547/android-data-backup-aborted-by-rate-limiter
-
-If someone successfully uses this plugin, open an issue and get in touch!
-
-
-## Summary
+# Summary
 
 This plugin makes use of [Android's Data Backup service](http://developer.android.com/guide/topics/data/backup.html) to backup and restore app data. Currently only Android is supported.
 
-## Installation
+# Installation
 
-### Install the plugin
+## Install the plugin
 
 ```sh
-cordova plugin add cordova-plugin-backup --variable BACKUP_SERVICE_KEY="<API_KEY>"
+cordova plugin add cordova-plugin-cloud-settings --variable BACKUP_SERVICE_KEY="<API_KEY>"
 ```
 
 If you've not yet registered to use Google Data Backup, [get a key here](https://developer.android.com/google/backup/signup.html?csw=1)
 
-### Supported platforms
+## Supported platforms
 
  - **Android** version 2.2 (API level 8) or higher
 
-## Getting Started
+# Getting Started
 
 A typical lifecycle is as follows:
  - User installs your app for the first time
@@ -39,11 +31,11 @@ A typical lifecycle is as follows:
  - Data is found, restored and returned to your app
  - User continues where they left off
 
-## API
+# API
 
-### Backup
+## Backup
 
-#### `plugins.backup.save(data, [successCallback], [errorCallback]);`
+### `plugins.backup.save(data, [successCallback], [errorCallback]);`
 
 ```javascript
 var appData = {
@@ -61,9 +53,9 @@ var appData = {
 plugins.backup.save(appData);
 ```
 
-### Restore
+## Restore
 
-#### `plugins.backup.restore(successCallback, [errorCallback]);`
+### `plugins.backup.restore(successCallback, [errorCallback]);`
 
 ```javascript
 function handleRestore (data) {
@@ -78,11 +70,32 @@ function handleRestore (data) {
 plugins.backup.restore(handleRestore);
 ```
 
-## Licence
+# Testing
+
+## Android 5.1 and below
+
+To test the manual backup service you need to manually invoke the backup manager (as instructed in [the Android documentation](http://androiddoc.qiniudn.com/training/backup/autosyncapi.html#testing)) to force backing up of the updated values:
+
+    // call backup() in the app with updated values
+
+    $ adb shell bmgr run
+
+    $ adb shell bmgr fullbackup <APP_PACKAGE_ID>
+
+    // re-install the app and call restore() to get the updated values
+
+
+# Authors
+
+[Dave Alden](https://github.com/dpa99c)
+
+Based on the plugin: https://github.com/cloakedninjas/cordova-plugin-backup
+
+# Licence
 
 The MIT License
 
-Copyright (c) 2015, Daniel Jackson
+Copyright (c) 2018, Dave Alden (Working Edge Ltd.)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
