@@ -1,5 +1,7 @@
 var onRestoreFn = function(){};
 
+var cloudsettings = {};
+
 cloudsettings.enableDebug = function(onSuccess) {
     return cordova.exec(onSuccess,
         null,
@@ -31,7 +33,7 @@ cloudsettings.save = function(settings, onSuccess, onError){
         if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
     };
 
-    if(typeof settings !== "object" || settings.length !== "undefined") throw "settings must be a key/value object!";
+    if(typeof settings !== "object" || typeof settings.length !== "undefined") throw "settings must be a key/value object!";
 
     // Record the data types
     var key, value, dataTypes = {};
@@ -50,6 +52,7 @@ cloudsettings.save = function(settings, onSuccess, onError){
 
     try{
         var data = JSON.stringify(settings);
+        dataTypes = JSON.stringify(dataTypes);
     }catch(e){
         return fail("convert settings to JSON", e.message);
     }
@@ -63,7 +66,7 @@ cloudsettings.save = function(settings, onSuccess, onError){
 };
 
 cloudsettings.exists = function(onSuccess){
-
+    cordova.exec(onSuccess, null, 'CloudSettingsPlugin', 'exists', []);
 };
 
 cloudsettings.onRestore = function(fn){

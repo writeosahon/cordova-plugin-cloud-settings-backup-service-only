@@ -9,9 +9,9 @@
 
 @property (nonatomic) BOOL debugEnabled;
 
-- (void)sync:(CDVInvokedUrlCommand *)command;
-- (void)save:(CDVInvokedUrlCommand *)command;
-- (void)load:(CDVInvokedUrlCommand *)command;
-- (void)remove:(CDVInvokedUrlCommand *)command;
-- (void)monitor:(CDVInvokedUrlCommand *)command;
+// Plugin API
+-(void)enableDebug:(CDVInvokedUrlCommand*)command;
+-(void)save:(CDVInvokedUrlCommand *)command;
+-(void)load:(CDVInvokedUrlCommand *)command;
+-(void)exists:(CDVInvokedUrlCommand *)command;
 @end

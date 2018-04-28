@@ -56,6 +56,8 @@ cloudsettings.save = function(settings, onSuccess, onError){
         if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
     };
 
+    if(typeof settings !== "object" || typeof settings.length !== "undefined") throw "settings must be a key/value object!";
+
     try{
         var data = JSON.stringify(settings);
     }catch(e){

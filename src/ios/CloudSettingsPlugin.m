@@ -7,6 +7,25 @@
 
 @interface CloudSettingsPlugin (private)
 - (void) cloudNotification:(NSNotification *)receivedNotification;
+- (void) sendPluginResult: (CDVPluginResult*)result :(CDVInvokedUrlCommand*)command;
+- (void) sendPluginResultBool: (BOOL)result :(CDVInvokedUrlCommand*)command;
+- (void) sendPluginResultString: (NSString*)result :(CDVInvokedUrlCommand*)command;
+- (void) sendPluginSuccess: (CDVInvokedUrlCommand*)command;
+- (void) sendPluginError: (NSString*) errorMessage :(CDVInvokedUrlCommand*)command;
+- (void) handlePluginException: (NSException*) exception :(CDVInvokedUrlCommand*)command;
+- (void)executeGlobalJavascript: (NSString*)jsString;
+- (NSString*) arrayToJsonString:(NSArray*)inputArray;
+- (NSString*) objectToJsonString:(NSDictionary*)inputObject;
+- (NSArray*) jsonStringToArray:(NSString*)jsonStr;
+- (NSDictionary*) jsonStringToDictionary:(NSString*)jsonStr;
+- (bool)isNull: (NSString*)str;
+- (void)jsCallback: (NSString*)name;
+- (void)jsCallbackWithArguments: (NSString*)name : (NSString*)arguments;
+- (void)d: (NSString*)msg;
+- (void)i: (NSString*)msg;
+- (void)w: (NSString*)msg;
+- (void)e: (NSString*)msg;
+- (NSString*)escapeDoubleQuotes: (NSString*)str;
 @end
 
 @implementation CloudSettingsPlugin
@@ -22,6 +41,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
 -(void)enableDebug:(CDVInvokedUrlCommand*)command{
     self.debugEnabled = true;
     [self d:@"Debug enabled"];
+    [self sendPluginSuccess:command];
 }
 
 -(void)save:(CDVInvokedUrlCommand *)command
@@ -30,8 +50,8 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
         @try {
             NSString* sNewData = [command.arguments objectAtIndex:0];
             NSString* sNewDataTypes = [command.arguments objectAtIndex:1];
-            NSDictionary* dNewData = [jsonStringToDictionary sNewData];
-            NSDictionary* dNewDataTypes = [jsonStringToDictionary sNewDataTypes];
+            NSDictionary* dNewData = [self jsonStringToDictionary:sNewData];
+            NSDictionary* dNewDataTypes = [self jsonStringToDictionary:sNewDataTypes];
             NSDictionary* dStoredData = [[NSUbiquitousKeyValueStore defaultStore] dictionaryRepresentation];
 
             // Store new/updated values
@@ -40,9 +60,9 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
                 NSString* type = [dNewDataTypes objectForKey:key];
                 NSString* sValue;
                 if([type isEqual: @"object"]){
-                    sValue = [self objectToJsonString value];
+                    sValue = [self objectToJsonString:value];
                 }else if([type isEqual: @"array"]){
-                    sValue = [self arrayToJsonString value];
+                    sValue = [self arrayToJsonString:value];
                 }else{
                     sValue = (NSString*) value;
                 }
@@ -61,7 +81,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
             if (success){
                 [self sendPluginSuccess:command];
             }else{
-                [self sendPluginError:@"synchronize failed" command:command];
+                [self sendPluginError:@"synchronize failed" :command];
             }
         }@catch (NSException *exception) {
             [self handlePluginException:exception :command];
@@ -76,7 +96,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
         @try {
             NSDictionary* dStoredData = [[NSUbiquitousKeyValueStore defaultStore] dictionaryRepresentation];
             NSString* sStoredData = [self objectToJsonString:dStoredData];
-            [self sendPluginResultString:sStoredData command:command];
+            [self sendPluginResultString:sStoredData :command];
         }@catch (NSException *exception) {
             [self handlePluginException:exception :command];
         }
@@ -88,20 +108,21 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
     [self.commandDelegate runInBackground:^{
          @try {
             NSDictionary* dStoredData = [[NSUbiquitousKeyValueStore defaultStore] dictionaryRepresentation];
-            if([dStoredData count] > 0)
-                [self sendPluginResultBool:TRUE command:command];
-            else
-                [self sendPluginResultBool:FALSE command:command];
-            }];
+             if([dStoredData count] > 0){
+                [self sendPluginResultBool:TRUE :command];
+             }else{
+                [self sendPluginResultBool:FALSE :command];
+             }
         }@catch (NSException *exception) {
             [self handlePluginException:exception :command];
         }
+    }];
 }
 
 - (void)cloudNotification:(NSNotification *)receivedNotification
 {
     @try {
-        d(@"iCloud notification received");
+        [self d:@"iCloud notification received"];
         int cause=[[[receivedNotification userInfo] valueForKey:NSUbiquitousKeyValueStoreChangeReasonKey] intValue];
         NSString* msg;
         switch(cause) {
@@ -158,32 +179,33 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:0];
     }
-    [self sendPluginResult:pluginResult command:command];
+    [self sendPluginResult:pluginResult :command];
 }
 
 - (void) sendPluginResultString: (NSString*)result :(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:result];
-    [self sendPluginResult:pluginResult command:command];
+    [self sendPluginResult:pluginResult :command];
 }
 
 - (void) sendPluginSuccess: (CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [self sendPluginResult:pluginResult command:command];
+    [self sendPluginResult:pluginResult :command];
+}
 
 - (void) sendPluginError: (NSString*) errorMessage :(CDVInvokedUrlCommand*)command
 {
     [self e:errorMessage];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
-    [self sendPluginResult:pluginResult command:command];
+    [self sendPluginResult:pluginResult :command];
 }
 
 - (void) handlePluginException: (NSException*) exception :(CDVInvokedUrlCommand*)command
 {
     [self e:[NSString stringWithFormat:@"EXCEPTION: %@", exception.reason]];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:exception.reason];
-    [self sendPluginResult:pluginResult command:command];
+    [self sendPluginResult:pluginResult :command];
 }
 
 - (void)executeGlobalJavascript: (NSString*)jsString
