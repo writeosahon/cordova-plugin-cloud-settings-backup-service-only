@@ -139,7 +139,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
                 [self d:msg];
                 break;
         }
-        [self jsCallbackWithArguments:@"onRestore" :msg];
+        [self jsCallbackWithArguments:@"_onRestore" :msg];
     }@catch (NSException *exception) {
         [self e:exception.reason];
     }
