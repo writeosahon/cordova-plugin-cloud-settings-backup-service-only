@@ -16,14 +16,16 @@ import org.json.JSONException;
 public class CloudSettingsPlugin extends CordovaPlugin {
 
     static final String LOG_TAG = "CloudSettingsPlugin";
+    static final String LOG_TAG_JS = "CloudSettingsPlugin[native]";
     static final Object sDataLock = new Object();
     static String javascriptNamespace = "cordova.plugin.cloudsettings";
+
+    protected boolean debugEnabled = false;
 
     public static CloudSettingsPlugin instance = null;
     static CordovaWebView webView;
 
     CallbackContext callbackContext;
-
     static BackupManager bm;
 
     /**
@@ -45,7 +47,10 @@ public class CloudSettingsPlugin extends CordovaPlugin {
         this.callbackContext = callbackContext;
         boolean success = false;
         try {
-            if (action.equals("saveBackup")) {
+            if (action.equals("enableDebug")) {
+                setDebug(true);
+                sendPluginResult(new PluginResult(PluginResult.Status.OK));
+            }else if (action.equals("saveBackup")) {
                 success = saveBackup(args);
             } else {
                 handleError("Invalid action: " + action);
@@ -56,29 +61,34 @@ public class CloudSettingsPlugin extends CordovaPlugin {
         return success;
     }
 
-    private boolean saveBackup(JSONArray args) throws JSONException {
+    protected void setDebug(boolean enabled) {
+        debugEnabled = enabled;
+        d("debug: " + String.valueOf(enabled));
+    }
+
+    protected boolean saveBackup(JSONArray args) throws JSONException {
         boolean success = true;
         try {
-            Log.d(LOG_TAG, "Requesting Backup");
+            d("Requesting Backup");
             bm.dataChanged();
             sendPluginResult(new PluginResult(PluginResult.Status.OK));
         } catch (Exception e) {
-            handleException(e);
+            handleException(e, "Requesting Backup");
             success = false;
         }
         return success;
     }
 
-    private void handleException(Exception e, String description) {
-        handleError(description + ": " + e.getMessage());
+    protected void handleException(Exception e, String description) {
+        handleError("EXCEPTION: " + description + ": " + e.getMessage());
     }
 
-    private void handleException(Exception e) {
-        handleError(e.getMessage());
+    protected void handleException(Exception e) {
+        handleError("EXCEPTION: " + e.getMessage());
     }
 
-    private void handleError(String error) {
-        Log.e(LOG_TAG, error);
+    protected void handleError(String error) {
+        e(error);
         if (callbackContext != null) {
             sendPluginResult(new PluginResult(PluginResult.Status.ERROR, error));
         }
@@ -102,11 +112,16 @@ public class CloudSettingsPlugin extends CordovaPlugin {
         executeGlobalJavascript(jsStatement);
     }
 
-    private Activity getActivity() {
+    protected static String jsQuoteEscape(String js) {
+        js = js.replace("\"", "\\\"");
+        return "\"" + js + "\"";
+    }
+
+    protected Activity getActivity() {
         return this.cordova.getActivity();
     }
 
-    private void sendPluginResult(PluginResult pluginResult) {
+    protected void sendPluginResult(PluginResult pluginResult) {
         if (callbackContext != null) {
             callbackContext.sendPluginResult(pluginResult);
             callbackContext = null;
@@ -117,5 +132,41 @@ public class CloudSettingsPlugin extends CordovaPlugin {
 
     protected static void onRestore() {
         jsCallback("_onRestore");
+    }
+
+    protected static void d(String message) {
+        Log.d(LOG_TAG, message);
+        if (instance != null && instance.debugEnabled) {
+            message = LOG_TAG_JS + ": " + message;
+            message = instance.jsQuoteEscape(message);
+            instance.executeGlobalJavascript("console.log("+message+")");
+        }
+    }
+
+    protected static void i(String message) {
+        Log.i(LOG_TAG, message);
+        if (instance != null && instance.debugEnabled) {
+            message = LOG_TAG_JS + ": " + message;
+            message = instance.jsQuoteEscape(message);
+            instance.executeGlobalJavascript("console.info("+message+")");
+        }
+    }
+
+    protected static void w(String message) {
+        Log.w(LOG_TAG, message);
+        if (instance != null && instance.debugEnabled) {
+            message = LOG_TAG_JS + ": " + message;
+            message = instance.jsQuoteEscape(message);
+            instance.executeGlobalJavascript("console.warn("+message+")");
+        }
+    }
+
+    protected static void e(String message) {
+        Log.e(LOG_TAG, message);
+        if (instance != null && instance.debugEnabled) {
+            message = LOG_TAG_JS + ": " + message;
+            message = instance.jsQuoteEscape(message);
+            instance.executeGlobalJavascript("console.error("+message+")");
+        }
     }
 }

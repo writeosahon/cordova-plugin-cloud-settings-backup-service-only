@@ -10,7 +10,14 @@
     <keywords>cordova,backup,cloud,settings,icloud</keywords>
 
     <platform name="android">
-        <preference name="BACKUP_SERVICE_KEY" />
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="CloudSettingsPlugin" >
+                <param name="android-package" value="cordova.plugin.cloudsettings.CloudSettingsPlugin"/>
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <preference name="ANDROID_BACKUP_SERVICE_KEY" />
 
         <dependency id="cordova-plugin-file" version="*" />
 
@@ -18,13 +25,8 @@
             <clobbers target="cordova.plugin.cloudsettings" />
         </js-module>
 
-       <config-file target="AndroidManifest.xml" parent="/manifest">
-           <!-- Write-file Permission -->
-           <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-       </config-file>
-
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
-            <meta-data android:name="com.google.android.backup.api_key" android:value="$BACKUP_SERVICE_KEY" />
+            <meta-data android:name="com.google.android.backup.api_key" android:value="$ANDROID_BACKUP_SERVICE_KEY" />
         </config-file>
 
         <edit-config file="AndroidManifest.xml" target="/manifest/application" mode="merge">
@@ -39,12 +41,23 @@
         <resource-file src="src/android/backup_rules.xml" target="res/xml/backup_rules.xml" />
         <source-file src="src/android/CloudSettingsPlugin.java" target-dir="src/cordova/plugin/cloudsettings" />
         <source-file src="src/android/BackupAgentHelper.java" target-dir="src/cordova/plugin/cloudsettings" />
+    </platform>
 
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="CloudSettingsPlugin" >
-                <param name="android-package" value="cordova.plugin.cloudsettings.CloudSettingsPlugin"/>
-                <param name="onload" value="true" />
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="CloudSettingsPlugin">
+                <param name="ios-package" value="CloudSettingsPlugin"/>
             </feature>
         </config-file>
+
+        <js-module src="www/ios/cloudsettings.js" name="CloudSettingsPlugin">
+            <clobbers target="cordova.plugin.cloudsettings" />
+        </js-module>
+
+        <header-file src="src/ios/CloudSettingsPlugin.h"/>
+        <source-file src="src/ios/CloudSettingsPlugin.m"/>
+
+        <hook type="after_plugin_install" src="src/hooks/ios/install_entitlements.js"/>
+        <hook type="after_platform_add" src="src/hooks/ios/install_entitlements.js"/>
     </platform>
 </plugin>

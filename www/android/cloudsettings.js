@@ -11,10 +11,18 @@ var resolveFilepath = function(){
 
 var cloudsettings = {};
 
+cloudsettings.enableDebug = function(onSuccess) {
+    return cordova.exec(onSuccess,
+        null,
+        'CloudSettingsPlugin',
+        'enableDebug',
+        []);
+};
+
 cloudsettings.load = function(onSuccess, onError){
     resolveFilepath();
     var fail = function (operation, error) {
-        if (onError) onError(error);
+        if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
     };
 
     window.resolveLocalFileSystemURL(dirPath, function (dirEntry) {
@@ -27,9 +35,13 @@ cloudsettings.load = function(onSuccess, onError){
                 reader.onloadend = function() {
                     try{
                         var data = JSON.parse(this.result);
+                    }catch(e){
+                        return fail("parsing file contents to JSON", e.message);
+                    }
+                    try{
                         onSuccess(data);
                     }catch(e){
-                        fail("parse file contents to JSON", e.message);
+                        return fail("calling success callback", e.message);
                     }
                 };
                 reader.readAsText(file);
@@ -41,13 +53,13 @@ cloudsettings.load = function(onSuccess, onError){
 cloudsettings.save = function(settings, onSuccess, onError){
     resolveFilepath();
     var fail = function (operation, error) {
-        if (onError) onError(error);
+        if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
     };
 
     try{
         var data = JSON.stringify(settings);
     }catch(e){
-        return fail("convert settings to JSON", e.message);
+        return fail("converting settings to JSON", e.message);
     }
 
     window.resolveLocalFileSystemURL(dirPath, function (dirEntry) {
@@ -57,11 +69,14 @@ cloudsettings.save = function(settings, onSuccess, onError){
         }, function (fileEntry) {
             fileEntry.createWriter(function (writer) {
                 writer.onwriteend = function (evt) {
-                    try{
-                        cordova.exec(onSuccess, fail.bind(this, "requesting backup"), 'CloudSettingsPlugin', 'saveBackup', []);
-                    }catch(ex){
-                        fail("calling success callback",ex.message);
-                    }
+                    cordova.exec(function(){
+                        try{
+                            onSuccess();
+                        }catch(e){
+                            fail("calling success callback",e.message);
+                        }
+                    }, fail.bind(this, "requesting backup"), 'CloudSettingsPlugin', 'saveBackup', []);
+
                 };
                 writer.write(data);
             }, fail.bind(this, "creating file writer"));

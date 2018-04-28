@@ -1,34 +1,49 @@
 Cordova Cloud Settings Plugin
 
 # Summary
+This plugin provides a mechanism to store key/value app settings in the form of a JSON structure which will persist in cloud storage so if the user re-installs the app or installs it on a different device, the settings will be restored and available in the new installation.
 
-This plugin makes use of [Android's Data Backup service](http://developer.android.com/guide/topics/data/backup.html) to backup and restore app data. Currently only Android is supported.
+Note: Settings cannot be shared between Android and iOS installations.
+
+## Android
+The plugin uses [Android's Data Backup service](http://developer.android.com/guide/topics/data/backup.html).
+
+- On Android 6+ the [Auto Backup](http://androiddoc.qiniudn.com/training/backup/autosyncapi.html) mechanism is used.
+- On Android 5 and below, the [manual Backup API](http://androiddoc.qiniudn.com/training/backup/backupapi.html) is used.
+- You need to [register your app](https://developer.android.com/google/backup/signup.html?csw=1) to use Google Data Backup in order to obtain an API key
+- Supports Android v2.2 (API level 8) and above
+
+## iOS
+
+The plugin uses the iCloud [NSUbiquitousKeyValueStore class](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore).
+
+Note:
+ - The total amount of space available in your app’s key-value store, for a given user, is 1 MB.
+ - There is a per-key value size limit of 1 MB
+ - There is a maximum of 1024 keys.
+ - You need to enable iCloud for your App Identifier in the [Apple Member Centre](https://developer.apple.com/membercenter/index.action).
+    - [See here](http://codecoach.blogspot.co.uk/2016/01/how-to-enable-ios-app-for-icloud.html) for details how to do this.
+ - Supports iOS v5.0 and above
 
 # Installation
 
 ## Install the plugin
 
 ```sh
-cordova plugin add cordova-plugin-cloud-settings --variable BACKUP_SERVICE_KEY="<API_KEY>"
+cordova plugin add cordova-plugin-cloud-settings --variable ANDROID_BACKUP_SERVICE_KEY="<API_KEY>"
 ```
 
-If you've not yet registered to use Google Data Backup, [get a key here](https://developer.android.com/google/backup/signup.html?csw=1)
 
-## Supported platforms
-
- - **Android** version 2.2 (API level 8) or higher
-
-# Getting Started
+# Usage lifecycle
 
 A typical lifecycle is as follows:
  - User installs your app for the first time
- - App starts, sees it has no existing data, makes a request to restore backup
- - No data is found, your app creates stub data
- - Users uses your app, generates data: Your app requests a backup
+ - App starts, calls `exists()`, sees it has no existing data
+ - Users uses your app, generates data: app calls `save()` to backup data to cloud
  - Further use, further backups...
  - User downloads your app onto a new device
- - App starts, sees it has no existing data, makes a request to restore backup
- - Data is found, restored and returned to your app
+ - App starts, calls `exists()`, sees it has existing data
+ - App calls `load()` to access existing data
  - User continues where they left off
 
 # API
@@ -53,22 +68,6 @@ var appData = {
 plugins.backup.save(appData);
 ```
 
-## Restore
-
-### `plugins.backup.restore(successCallback, [errorCallback]);`
-
-```javascript
-function handleRestore (data) {
-  if (data) {
-    appData = data;
-  }
-  else {
-    // initialize first-use data
-  }
-}
-
-plugins.backup.restore(handleRestore);
-```
 
 # Testing
 
@@ -154,7 +153,10 @@ TODO
 
 [Dave Alden](https://github.com/dpa99c)
 
-Based on the plugin: https://github.com/cloakedninjas/cordova-plugin-backup
+Based on the plugins:
+- https://github.com/cloakedninjas/cordova-plugin-backup
+- https://github.com/alexdrel/cordova-plugin-icloudkv
+- https://github.com/jcesarmobile/FilePicker-Phonegap-iOS-Plugin
 
 # Licence
 
