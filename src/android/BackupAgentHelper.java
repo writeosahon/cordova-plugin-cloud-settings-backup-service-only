@@ -19,21 +19,20 @@ public class BackupAgentHelper extends android.app.backup.BackupAgentHelper {
     }
 
     @Override
-    public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data,
-                         ParcelFileDescriptor newState) throws IOException {
+    public void onBackup(ParcelFileDescriptor oldState, BackupDataOutput data, ParcelFileDescriptor newState) throws IOException {
 
         synchronized (CloudSettingsPlugin.sDataLock) {
-            Log.d(CloudSettingsPlugin.LOG_TAG, "Backup requested: " + data.toString());
+            Log.d(CloudSettingsPlugin.LOG_TAG, "Backup invoked: " + data.toString());
             super.onBackup(oldState, data, newState);
         }
     }
 
     @Override
-    public void onRestore(BackupDataInput data, int appVersionCode,
-                          ParcelFileDescriptor newState) throws IOException {
+    public void onRestore(BackupDataInput data, int appVersionCode, ParcelFileDescriptor newState) throws IOException {
 
         synchronized (CloudSettingsPlugin.sDataLock) {
-            Log.d(CloudSettingsPlugin.LOG_TAG, "Restore given: " + data.toString());
+            Log.d(CloudSettingsPlugin.LOG_TAG, "Restore invoked: " + data.toString());
+            CloudSettingsPlugin.onRestore();
             super.onRestore(data, appVersionCode, newState);
         }
     }

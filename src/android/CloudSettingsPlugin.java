@@ -1,105 +1,121 @@
 package cordova.plugin.cloudsettings;
 
+import android.app.Activity;
 import android.app.backup.BackupManager;
-import android.content.Context;
 import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 
 public class CloudSettingsPlugin extends CordovaPlugin {
 
     static final String LOG_TAG = "CloudSettingsPlugin";
     static final Object sDataLock = new Object();
+    static String javascriptNamespace = "cordova.plugin.cloudsettings";
 
-    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        Log.d(LOG_TAG, "JS call: " + action);
-        if (action.equals("saveBackup")) {
-            JSONObject data = args.getJSONObject(0);
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, saveBackup(data)));
-            return true;
-        }
-        else if (action.equals("checkForRestore")) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, checkForRestore()));
-            return true;
-        }
+    public static CloudSettingsPlugin instance = null;
+    static CordovaWebView webView;
 
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
-        return false;
+    CallbackContext callbackContext;
+
+    static BackupManager bm;
+
+    /**
+     * Sets the context of the Command. This can then be used to do things like
+     * get file paths associated with the Activity.
+     *
+     * @param cordova The context of the main Activity.
+     * @param webView The CordovaWebView Cordova is running in.
+     */
+    @Override
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
+        bm = new BackupManager(cordova.getActivity().getApplicationContext());
+        instance = this;
+        this.webView = webView;
     }
 
-    private boolean saveBackup(JSONObject data) {
-        BufferedWriter writer = null;
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
+        this.callbackContext = callbackContext;
+        boolean success = false;
         try {
-            Context context = cordova.getActivity().getApplicationContext();
-            File file = new File(context.getFilesDir(), BackupAgentHelper.FILE_NAME);
-            writer = new BufferedWriter(new FileWriter(file));
-            writer.write(data.toString());
+            if (action.equals("saveBackup")) {
+                success = saveBackup(args);
+            } else {
+                handleError("Invalid action: " + action);
+            }
+        } catch (Exception e) {
+            handleException(e);
+        }
+        return success;
+    }
 
-            // request a backup from Android system
+    private boolean saveBackup(JSONArray args) throws JSONException {
+        boolean success = true;
+        try {
             Log.d(LOG_TAG, "Requesting Backup");
-            BackupManager bm = new BackupManager(context);
             bm.dataChanged();
-        } catch (IOException e) {
-            Log.e(LOG_TAG, e.getMessage());
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Failed to save backup" + e.getMessage());
-            }
+            sendPluginResult(new PluginResult(PluginResult.Status.OK));
+        } catch (Exception e) {
+            handleException(e);
+            success = false;
         }
-
-        return true;
+        return success;
     }
 
-    private JSONObject checkForRestore() {
-        BufferedReader reader = null;
+    private void handleException(Exception e, String description) {
+        handleError(description + ": " + e.getMessage());
+    }
 
-        try {
-            Context context = cordova.getActivity().getApplicationContext();
-            File file = new File(context.getFilesDir(), BackupAgentHelper.FILE_NAME);
+    private void handleException(Exception e) {
+        handleError(e.getMessage());
+    }
 
-            if (file.exists() && !file.isDirectory()) {
-                reader = new BufferedReader(new FileReader(file));
-                StringBuilder sb = new StringBuilder();
-                String line = reader.readLine();
-
-                while (line != null) {
-                    sb.append(line);
-                    line = reader.readLine();
-                }
-                String fileContents = sb.toString();
-
-                return new JSONObject(fileContents);
-            }
-        } catch (IOException e) {
-            Log.e(LOG_TAG, "Failed to open backup file" + e.getMessage());
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Failed to parse JSON" + e.getMessage());
-        } finally {
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                Log.e(LOG_TAG, e.getMessage());
-            }
+    private void handleError(String error) {
+        Log.e(LOG_TAG, error);
+        if (callbackContext != null) {
+            sendPluginResult(new PluginResult(PluginResult.Status.ERROR, error));
         }
+    }
 
-        return new JSONObject();
+    protected static void executeGlobalJavascript(final String jsString) {
+        instance.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    webView.loadUrl("javascript:" + jsString);
+                } catch (Exception e) {
+                    instance.handleException(e);
+                }
+            }
+        });
+    }
+
+    protected static void jsCallback(String name) {
+        String jsStatement = String.format(javascriptNamespace + "[\"%s\"]();", name);
+        executeGlobalJavascript(jsStatement);
+    }
+
+    private Activity getActivity() {
+        return this.cordova.getActivity();
+    }
+
+    private void sendPluginResult(PluginResult pluginResult) {
+        if (callbackContext != null) {
+            callbackContext.sendPluginResult(pluginResult);
+            callbackContext = null;
+        }else{
+            handleError("No callback context is available");
+        }
+    }
+
+    protected static void onRestore() {
+        jsCallback("_onRestore");
     }
 }

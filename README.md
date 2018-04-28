@@ -72,18 +72,83 @@ plugins.backup.restore(handleRestore);
 
 # Testing
 
-## Android 5.1 and below
+## Testing Android
 
-To test the manual backup service you need to manually invoke the backup manager (as instructed in [the Android documentation](http://androiddoc.qiniudn.com/training/backup/autosyncapi.html#testing)) to force backing up of the updated values:
+### Test backup
+To test backup of settings you need to manually invoke the backup manager (as instructed in [the Android documentation](https://developer.android.com/guide/topics/data/testingbackup)) to force backing up of the updated values:
 
-    // call backup() in the app with updated values
+First make sure the backup manager is enabled and setup for verbose logging:
 
-    $ adb shell bmgr run
+```bash
+    $ adb shell bmgr enabled
+    $ adb shell setprop log.tag.GmsBackupTransport VERBOSE
+    $ adb shell setprop log.tag.BackupXmlParserLogging VERBOSE
+```
 
+#### Android 7.0 and above
+
+Run the following command to perform a backup:
+
+```bash
+    $ adb shell bmgr backupnow <APP_PACKAGE_ID>
+```
+
+#### Android 6
+
+* Run the following command:
+```bash
+    $ adb shell bmgr backup @pm@ && adb shell bmgr run
+```
+
+* Wait until the command in the previous step finishes by monitoring `adb logcat` for the following output:
+```
+    I/BackupManagerService: K/V backup pass finished.
+```
+
+* Run the following command to perform a backup:
+```bash
     $ adb shell bmgr fullbackup <APP_PACKAGE_ID>
+```
 
-    // re-install the app and call restore() to get the updated values
 
+#### Android 5.1 and below
+Run the following commands to perform a backup:
+
+```bash
+    $ adb shell bmgr backup <APP_PACKAGE_ID>
+    $ adb shell bmgr run
+```
+
+### Test restore
+
+To manually initiate a restore, run the following command:
+```bash
+    $ adb shell bmgr restore <TOKEN> <APP_PACKAGE_ID>
+```
+
+* To look up backup tokens run `adb shell dumpsys backup`.
+* The token is the hexidecimal string following the labels `Ancestral:` and `Current:`
+    * The ancestral token refers to the backup dataset that was used to restore the device when it was initially setup (with the device-setup wizard).
+    * The current token refers to the device's current backup dataset (the dataset that the device is currently sending its backup data to).
+* You can use a regex to filter the output for just your app ID, for example if your app package ID is `io.cordova.plugin.cloudsettings.test`:
+```bash
+    $ adb shell dumpsys backup | grep -P '^\S+\: | \: io\.cordova\.plugin\.cloudsettings\.test'
+```
+
+You also can test automatic restore for your app by uninstalling and reinstalling your app either with adb or through the Google Play Store app.
+
+### Wipe backup data
+To wipe the backup data for your app:
+
+```bash
+    $ adb shell bmgr list transports
+    # note the one with an * next to it, it is the transport protocol for your backup
+    $ adb shell bmgr wipe [* transport-protocol] <APP_PACKAGE_ID>
+```
+
+## Testing iOS
+
+TODO
 
 # Authors
 
