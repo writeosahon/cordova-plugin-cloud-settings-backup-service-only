@@ -55,7 +55,7 @@ Note:
  - Supports iOS v5.0 and above
  - The amount of storage space available is 1MB per user per app.
  - You need to enable iCloud for your App Identifier in the [Apple Member Centre](https://developer.apple.com/membercenter/index.action) and enable iCloud capability in your Xcode project.
-    - [See here](http://codecoach.blogspot.co.uk/2016/01/how-to-enable-ios-app-for-icloud.html) for details how to do this.
+    - [See here](https://theblog.github.io/post/swift-icloud-key-value-store/) for details how to add iCloud to your App ID and activate the iCloud capability in Xcode.
 
 
 # Installation
