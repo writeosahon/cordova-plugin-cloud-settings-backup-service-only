@@ -4,10 +4,19 @@
         id="cordova-plugin-cloud-settings"
         version="1.0.0">
 
-    <name>Cloud Settings</name>
-    <description>Cordova Cloud Settings Plugin</description>
-    <license>Apache 2.0</license>
-    <keywords>cordova,backup,cloud,settings,icloud</keywords>
+    <name>cordova-plugin-cloud-settings</name>
+    <description>A Cordova plugin for Android &amp; iOS to persist user settings in cloud storage across devices and installs.</description>
+    <license>MIT</license>
+    <keywords>cordova,android,ios,backup,cloud,settings,icloud</keywords>
+
+    <author>Dave Alden</author>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <repo>https://github.com/dpa99c/cordova-plugin-cloud-settings.git</repo>
+    <issue>https://github.com/dpa99c/cordova-plugin-cloud-settings/issues</issue>
 
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
