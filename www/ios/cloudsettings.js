@@ -1,5 +1,32 @@
 var onRestoreFn = function(){};
 
+var merge = function () {
+    var destination = {},
+        sources = [].slice.call(arguments, 0);
+    sources.forEach(function (source) {
+        var prop;
+        for (prop in source) {
+            if (prop in destination && Array.isArray(destination[prop])) {
+
+                // Concat Arrays
+                destination[prop] = destination[prop].concat(source[prop]);
+
+            } else if (prop in destination && typeof destination[prop] === "object") {
+
+                // Merge Objects
+                destination[prop] = merge(destination[prop], source[prop]);
+
+            } else {
+
+                // Set new values
+                destination[prop] = source[prop];
+
+            }
+        }
+    });
+    return destination;
+};
+
 var cloudsettings = {};
 
 cloudsettings.enableDebug = function(onSuccess) {
@@ -18,51 +45,49 @@ cloudsettings.load = function(onSuccess, onError){
         try{
             var oData = JSON.parse(sData);
         }catch(e){
-            return fail("parsing settings to JSON", e.message);
+            return fail("parsing stored settings to JSON", e.message);
         }
         try{
             onSuccess(oData);
         }catch(e){
             return fail("calling success callback", e.message);
         }
-    }, fail.bind(this, "loading settings"), 'CloudSettingsPlugin', 'load', []);
+    }, fail.bind(this, "loading stored settings"), 'CloudSettingsPlugin', 'load', []);
 };
 
-cloudsettings.save = function(settings, onSuccess, onError){
+cloudsettings.save = function(settings, onSuccess, onError, overwrite){
+    if(typeof settings !== "object" || typeof settings.length !== "undefined") throw "settings must be a key/value object!";
+
     var fail = function (operation, error) {
         if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
     };
 
-    if(typeof settings !== "object" || typeof settings.length !== "undefined") throw "settings must be a key/value object!";
-
-    // Record the data types
-    var key, value, dataTypes = {};
-    for(key in settings){
-        value = settings[key];
-        if(typeof value === "object"){
-            if(typeof value.length === "undefined"){
-                dataTypes[key] = "object";
-            }else{
-                dataTypes[key] = "array";
-            }
-        }else{
-            dataTypes[key] = "string";
-        }
-    }
-
-    try{
-        var data = JSON.stringify(settings);
-        dataTypes = JSON.stringify(dataTypes);
-    }catch(e){
-        return fail("convert settings to JSON", e.message);
-    }
-    cordova.exec(function(){
+    var doSave = function(){
+        settings.timestamp = (new Date()).valueOf();
         try{
-            onSuccess();
+            var data = JSON.stringify(settings);
         }catch(e){
-            return fail("calling success callback", e.message);
+            return fail("convert settings to JSON", e.message);
         }
-    }, fail.bind(this, "saving settings"), 'CloudSettingsPlugin', 'save', [data, dataTypes]);
+        cordova.exec(function(){
+            try{
+                onSuccess(settings);
+            }catch(e){
+                return fail("calling success callback", e.message);
+            }
+        }, fail.bind(this, "saving settings"), 'CloudSettingsPlugin', 'save', [data, dataTypes]);
+    };
+
+    if(overwrite){
+        doSave();
+    }else{
+        // Load stored settings and merge them with new settings
+        cloudsettings.load(function(stored){
+            settings = merge(stored, settings);
+            doSave();
+        }, onError);
+    }
+    
 };
 
 cloudsettings.exists = function(onSuccess){

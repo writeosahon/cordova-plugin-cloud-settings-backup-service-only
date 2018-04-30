@@ -31,6 +31,7 @@
 @implementation CloudSettingsPlugin
 
 static NSString*const LOG_TAG = @"CloudSettingsPlugin[native]";
+static NSString*const KEY = @"settings";
 
 static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
 
@@ -49,32 +50,9 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
     [self.commandDelegate runInBackground:^{
         @try {
             NSString* sNewData = [command.arguments objectAtIndex:0];
-            NSString* sNewDataTypes = [command.arguments objectAtIndex:1];
-            NSDictionary* dNewData = [self jsonStringToDictionary:sNewData];
-            NSDictionary* dNewDataTypes = [self jsonStringToDictionary:sNewDataTypes];
-            NSDictionary* dStoredData = [[NSUbiquitousKeyValueStore defaultStore] dictionaryRepresentation];
 
-            // Store new/updated values
-            for (NSString* key in dNewData) {
-                id value = [dNewData objectForKey:key];
-                NSString* type = [dNewDataTypes objectForKey:key];
-                NSString* sValue;
-                if([type isEqual: @"object"]){
-                    sValue = [self objectToJsonString:value];
-                }else if([type isEqual: @"array"]){
-                    sValue = [self arrayToJsonString:value];
-                }else{
-                    sValue = (NSString*) value;
-                }
-                [[NSUbiquitousKeyValueStore defaultStore] setString:sValue forKey:key];
-            }
-
-            // Remove stored values where key is not present in new data
-            for (NSString* key in dStoredData) {
-                if([dStoredData objectForKey:key] == nil){
-                    [[NSUbiquitousKeyValueStore defaultStore] removeObjectForKey:key];
-                }
-            }
+            // Store new settings values
+            [[NSUbiquitousKeyValueStore defaultStore] setString:sNewData forKey:KEY];
             
             // sync memory values to disk (in preparation for next iCloud sync)
             BOOL success = [[NSUbiquitousKeyValueStore defaultStore] synchronize];
@@ -94,8 +72,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
 {
     [self.commandDelegate runInBackground:^{
         @try {
-            NSDictionary* dStoredData = [[NSUbiquitousKeyValueStore defaultStore] dictionaryRepresentation];
-            NSString* sStoredData = [self objectToJsonString:dStoredData];
+            NSString* sStoredData = [[NSUbiquitousKeyValueStore defaultStore] stringForKey:KEY];
             [self sendPluginResultString:sStoredData :command];
         }@catch (NSException *exception) {
             [self handlePluginException:exception :command];
@@ -107,8 +84,8 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
 {
     [self.commandDelegate runInBackground:^{
          @try {
-            NSDictionary* dStoredData = [[NSUbiquitousKeyValueStore defaultStore] dictionaryRepresentation];
-             if([dStoredData count] > 0){
+            NSString* sStoredData = [[NSUbiquitousKeyValueStore defaultStore] stringForKey:KEY];
+             if(sStoredData != nil){
                 [self sendPluginResultBool:TRUE :command];
              }else{
                 [self sendPluginResultBool:FALSE :command];
@@ -122,9 +99,8 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
 - (void)cloudNotification:(NSNotification *)receivedNotification
 {
     @try {
-        [self d:@"iCloud notification received"];
         int cause=[[[receivedNotification userInfo] valueForKey:NSUbiquitousKeyValueStoreChangeReasonKey] intValue];
-        NSString* msg;
+        NSString* msg = @"unknown notification";
         switch(cause) {
             case NSUbiquitousKeyValueStoreQuotaViolationChange:
                 msg = @"storage quota exceeded";
@@ -139,6 +115,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
                 [self d:msg];
                 break;
         }
+        [self d:[NSString stringWithFormat:@"iCloud notification received: %@", msg]];
         [self jsCallbackWithArguments:@"_onRestore" :msg];
     }@catch (NSException *exception) {
         [self e:exception.reason];
