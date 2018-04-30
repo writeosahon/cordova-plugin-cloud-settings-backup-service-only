@@ -75,7 +75,7 @@ cloudsettings.save = function(settings, onSuccess, onError, overwrite){
             }catch(e){
                 return fail("calling success callback", e.message);
             }
-        }, fail.bind(this, "saving settings"), 'CloudSettingsPlugin', 'save', [data, dataTypes]);
+        }, fail.bind(this, "saving settings"), 'CloudSettingsPlugin', 'save', [data]);
     };
 
     if(overwrite){
