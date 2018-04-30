@@ -1,4 +1,4 @@
-Cordova Cloud Settings plugin [![Latest Stable Version](https://img.shields.io/npm/v/cordova.plugins.diagnostic.svg)]
+Cordova Cloud Settings plugin [![Latest Stable Version](https://img.shields.io/npm/v/cordova-plugin-cloud-settings.svg)](https://www.npmjs.com/package/cordova-plugin-cloud-settings)
 =====================================================================================================================
 
 A Cordova plugin for Android & iOS to persist user settings in cloud storage across devices and installs.
