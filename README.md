@@ -57,7 +57,7 @@ The plugin uses [Android's Data Backup service](http://developer.android.com/gui
 
 ## iOS
 
-The plugin uses [iCloud](https://support.apple.com/en-gb/HT207428) back to store the data, specifically the [NSUbiquitousKeyValueStore class](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore) to store settings in a native K/V store
+The plugin uses [iCloud](https://support.apple.com/en-gb/HT207428) to store the settings, specifically the [NSUbiquitousKeyValueStore class](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore) to store settings in a native K/V store
 
 Note:
  - Supports iOS v5.0 and above
