@@ -24,6 +24,10 @@ A Cordova plugin for Android & iOS to persist user settings in cloud storage acr
   - [Testing Android](#testing-android)
   - [Testing iOS](#testing-ios)
 - [Example project](#example-project)
+- [Use in GDPR-compliant analytics](#use-in-gdpr-compliant-analytics)
+  - [GDPR background](#gdpr-background)
+  - [Impact on user tracking in analytics](#impact-on-user-tracking-in-analytics)
+  - [Benefits of using this plugin](#benefits-of-using-this-plugin)
 - [Authors](#authors)
 - [Licence](#licence)
 
@@ -32,12 +36,16 @@ A Cordova plugin for Android & iOS to persist user settings in cloud storage acr
 # Summary
 This plugin provides a mechanism to store key/value app settings in the form of a JSON structure which will persist in cloud storage so if the user re-installs the app or installs it on a different device, the settings will be restored and available in the new installation.
 
+Key features:
+- Settings are stored using the free native cloud storage solution provided by the platform.
+    - Out-of-the-box cloud storage with no additional SDKs required.
+- No user authentication is required so you can read and store settings immediately without asking user to log in.
+    - This makes the plugin useful for [GDPR-compliant cross-installation user tracking](#use-in-gdpr-compliant-analytics).
+- So stored settings are immediately available to new installs on app startup (no user log in required).
+
+
 Note:
-- Settings are stored in the platform provider's native cloud storage solution
-    - Android: [Android's Data Backup service](http://developer.android.com/guide/topics/data/backup.html)
-    - iOS: [iCloud](https://support.apple.com/en-gb/HT207428)
-- So no user authentication is required
-- Settings cannot be shared between Android and iOS installations.
+- Settings **cannot** be shared between Android and iOS installations.
 
 ## Android
 The plugin uses [Android's Data Backup service](http://developer.android.com/guide/topics/data/backup.html) to store settings in a file.
@@ -49,7 +57,7 @@ The plugin uses [Android's Data Backup service](http://developer.android.com/gui
 
 ## iOS
 
-The plugin uses the [NSUbiquitousKeyValueStore class](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore) to store settings in the native K/V store.
+The plugin uses [iCloud](https://support.apple.com/en-gb/HT207428) back to store the data, specifically the [NSUbiquitousKeyValueStore class](https://developer.apple.com/documentation/foundation/nsubiquitouskeyvaluestore) to store settings in a native K/V store
 
 Note:
  - Supports iOS v5.0 and above
@@ -298,9 +306,47 @@ You can also install the app on 2 iOS devices. Saving data on one should trigger
 
 An example project illustrating/validating use of this plugin can be found here: [https://github.com/dpa99c/cordova-plugin-cloud-settings-test](https://github.com/dpa99c/cordova-plugin-cloud-settings-test)
 
+# Use in GDPR-compliant analytics
+
+## GDPR background
+- The EU's [General Data Protection Regulation (GDPR)](https://www.eugdpr.org/) is effective from 25 May 2018.
+- It introduces strict controls regarding the use of personal data by apps and websites.
+- GDPR distinguishes 3 types of data and associated obligations ([reference](https://iapp.org/media/pdf/resource_center/PA_WP2-Anonymous-pseudonymous-comparison.pdf)):
+    - Personally Identifiable Information (PII)
+        - directly identifies an individual
+        - e.g. unencrypted device ID
+        - fully obligated under GDPR
+    - Pseudonmyized data
+        - indirectly identifies an individual
+        - e.g. an encypted [one-way hash](https://support.google.com/analytics/answer/6366371?hl=en&ref_topic=2919631) of customer ID
+        - partially obligated under GDPR
+    - Anonymous data
+        - no direct connection to an individual
+        - e.g. an randomly-generated GUID
+        - no obligation under GDPR
+
+
+## Impact on user tracking in analytics
+- It can be [useful to track a user ID across app installs](https://support.google.com/analytics/answer/3123663)
+- However, GDPR applies to any personal information sent to analytics platforms such as Google Analytics or Firebase.
+- If you use PII or pseudonmyized data (such as for the user ID), you are obligated by GDPR to provide the user a mechanism to:
+    - opt-in to analytics before sending any data (implicit consent is no longer acceptable under GDPR)
+    - opt-out at a later date if they opt-in (e.g. via an app setting)
+    - request retrieval or removal their analytics data
+
+## Benefits of using this plugin
+- This plugin can be used to stored a randomly-generated user ID which persists across app installs and devices.
+- Passing this to an analytics service means that user can be (anonymously) tracked across app installs and devices.
+- Because the GUID is random and has no association with the user's personal identity, it is classed as **anonymous data** under GDPR and therefore is not obligated.
+- This means you don't have to offer opt-in/opt-out and are not obliged to provide retrieval or removal of their analytics data.
+
 # Authors
 
-[Dave Alden](https://github.com/dpa99c)
+- [Dave Alden](https://github.com/dpa99c)
+
+Major code contributors:
+- [Daniel Jackson](https://github.com/cloakedninjas)
+- [Alex Drel](https://github.com/alexdrel)
 
 Based on the plugins:
 - https://github.com/cloakedninjas/cordova-plugin-backup
