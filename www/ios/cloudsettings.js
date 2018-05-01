@@ -81,11 +81,17 @@ cloudsettings.save = function(settings, onSuccess, onError, overwrite){
     if(overwrite){
         doSave();
     }else{
-        // Load stored settings and merge them with new settings
-        cloudsettings.load(function(stored){
-            settings = merge(stored, settings);
-            doSave();
-        }, onError);
+        cloudsettings.exists(function(exists){
+            if(exists){
+                // Load stored settings and merge them with new settings
+                cloudsettings.load(function(stored){
+                    settings = merge(stored, settings);
+                    doSave();
+                }, onError);
+            }else{
+                doSave();
+            }
+        });
     }
     
 };
