@@ -137,7 +137,6 @@ Notes:
 
 ### Parameters
 - {object} settings - a JSON structure representing the user settings to save to cloud backup.
-    - Note: this will replace existing settings, so if you wish to merge with existing settings you should call `load()` to retrieve the currently saved settings and merge with those before saving.
 - {function} successCallback - (optional) callback function to invoke on successfuly saving settings and scheduling for backup.
 - {function} errorCallback - (optional) callback function to invoke on failure to save settings or schedule for backup.
 Will be passed a single string argument which contains a description of the error.
@@ -339,6 +338,7 @@ An example project illustrating/validating use of this plugin can be found here:
 - Passing this to an analytics service means that user can be (anonymously) tracked across app installs and devices.
 - Because the GUID is random and has no association with the user's personal identity, it is classed as **anonymous data** under GDPR and therefore is not obligated.
 - This means you don't have to offer opt-in/opt-out and are not obliged to provide retrieval or removal of their analytics data.
+    - This of course only applies if you aren't sending any other PII or pseudonymous data to analytics.
 
 # Authors
 
