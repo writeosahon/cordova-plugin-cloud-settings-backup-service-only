@@ -36,6 +36,18 @@ var resolveFilepath = function(){
     filePath = dirPath + FILE_NAME;
 };
 
+var fail = function (onError, operation, error) {
+    if(typeof error === "object"){
+        error = JSON.stringify(error);
+    }
+    var msg = "CloudSettingsPlugin ERROR " + operation + ": " + error;
+    if (onError){
+        onError(msg);
+    }else{
+        console.error(msg);
+    }
+};
+
 var cloudsettings = {};
 
 cloudsettings.enableDebug = function(onSuccess) {
@@ -48,9 +60,6 @@ cloudsettings.enableDebug = function(onSuccess) {
 
 cloudsettings.load = function(onSuccess, onError){
     resolveFilepath();
-    var fail = function (operation, error) {
-        if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
-    };
 
     window.resolveLocalFileSystemURL(dirPath, function (dirEntry) {
         dirEntry.getFile(FILE_NAME, {
@@ -63,34 +72,31 @@ cloudsettings.load = function(onSuccess, onError){
                     try{
                         var data = JSON.parse(this.result);
                     }catch(e){
-                        return fail("parsing file contents to JSON", e.message);
+                        return fail(onError, "parsing file contents to JSON", e.message);
                     }
                     try{
                         onSuccess(data);
                     }catch(e){
-                        return fail("calling success callback", e.message);
+                        return fail(onError, "calling success callback", e.message);
                     }
                 };
                 reader.readAsText(file);
-            }, fail.bind(this, "getting file handle"));
-        }, fail.bind(this, "getting file entry"));
-    }, fail.bind(this, "resolving storage directory"));
+            }, fail.bind(this, onError, "getting file handle"));
+        }, fail.bind(this, onError, "getting file entry"));
+    }, fail.bind(this, onError, "resolving storage directory"));
 };
 
 cloudsettings.save = function(settings, onSuccess, onError, overwrite){
     if(typeof settings !== "object" || typeof settings.length !== "undefined") throw "settings must be a key/value object!";
 
     resolveFilepath();
-    var fail = function (operation, error) {
-        if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
-    };
 
     var doSave = function(){
         settings.timestamp = (new Date()).valueOf();
         try{
             var data = JSON.stringify(settings);
         }catch(e){
-            return fail("converting settings to JSON", e.message);
+            return fail(onError, "converting settings to JSON", e.message);
         }
     
         window.resolveLocalFileSystemURL(dirPath, function (dirEntry) {
@@ -104,15 +110,15 @@ cloudsettings.save = function(settings, onSuccess, onError, overwrite){
                             try{
                                 onSuccess(settings);
                             }catch(e){
-                                fail("calling success callback",e.message);
+                                fail(onError, "calling success callback",e.message);
                             }
-                        }, fail.bind(this, "requesting backup"), 'CloudSettingsPlugin', 'saveBackup', []);
+                        }, fail.bind(this, onError, "requesting backup"), 'CloudSettingsPlugin', 'saveBackup', []);
     
                     };
                     writer.write(data);
-                }, fail.bind(this, "creating file writer"));
-            }, fail.bind(this, "getting file entry"));
-        }, fail.bind(this, "resolving storage directory"));
+                }, fail.bind(this, onError, "creating file writer"));
+            }, fail.bind(this, onError, "getting file entry"));
+        }, fail.bind(this, onError, "resolving storage directory"));
     };
 
     if(overwrite){

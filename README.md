@@ -241,7 +241,7 @@ Run the following command to perform a backup:
 
 * Wait until the command in the previous step finishes by monitoring `adb logcat` for the following output:
 ```
-    I/BackupManagerService: K/V backup pass finished.
+    I/BackupManagerService: Backup pass finished.
 ```
 
 * Run the following command to perform a backup:

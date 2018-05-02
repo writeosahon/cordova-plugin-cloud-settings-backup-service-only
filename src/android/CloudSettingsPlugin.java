@@ -79,19 +79,16 @@ public class CloudSettingsPlugin extends CordovaPlugin {
         return success;
     }
 
-    protected void handleException(Exception e, String description) {
+    protected static void handleException(Exception e, String description) {
         handleError("EXCEPTION: " + description + ": " + e.getMessage());
     }
 
-    protected void handleException(Exception e) {
+    protected static void handleException(Exception e) {
         handleError("EXCEPTION: " + e.getMessage());
     }
 
-    protected void handleError(String error) {
+    protected static void handleError(String error) {
         e(error);
-        if (callbackContext != null) {
-            sendPluginResult(new PluginResult(PluginResult.Status.ERROR, error));
-        }
     }
 
     protected static void executeGlobalJavascript(final String jsString) {
@@ -131,7 +128,9 @@ public class CloudSettingsPlugin extends CordovaPlugin {
     }
 
     protected static void onRestore() {
-        jsCallback("_onRestore");
+        if(instance != null){
+            jsCallback("_onRestore");
+        }
     }
 
     protected static void d(String message) {

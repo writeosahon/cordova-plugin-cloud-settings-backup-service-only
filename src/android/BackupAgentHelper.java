@@ -26,7 +26,7 @@ public class BackupAgentHelper extends android.app.backup.BackupAgentHelper {
                 CloudSettingsPlugin.d("Backup invoked: " + data.toString());
                 super.onBackup(oldState, data, newState);
             } catch (Exception e) {
-                CloudSettingsPlugin.instance.handleException(e, "when backup invoked");
+                CloudSettingsPlugin.handleException(e, "when backup invoked");
             }
         }
     }
@@ -40,7 +40,7 @@ public class BackupAgentHelper extends android.app.backup.BackupAgentHelper {
                 CloudSettingsPlugin.onRestore();
                 super.onRestore(data, appVersionCode, newState);
             } catch (Exception e) {
-                CloudSettingsPlugin.instance.handleException(e, "when restore invoked");
+                CloudSettingsPlugin.handleException(e, "when restore invoked");
             }
         }
     }

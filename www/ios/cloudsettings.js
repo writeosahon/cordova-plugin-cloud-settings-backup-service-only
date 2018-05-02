@@ -27,6 +27,18 @@ var merge = function () {
     return destination;
 };
 
+var fail = function (onError, operation, error) {
+    if(typeof error === "object"){
+        error = JSON.stringify(error);
+    }
+    var msg = "CloudSettingsPlugin ERROR " + operation + ": " + error;
+    if (onError){
+        onError(msg);
+    }else{
+        console.error(msg);
+    }
+};
+
 var cloudsettings = {};
 
 cloudsettings.enableDebug = function(onSuccess) {
@@ -38,44 +50,37 @@ cloudsettings.enableDebug = function(onSuccess) {
 };
 
 cloudsettings.load = function(onSuccess, onError){
-    var fail = function (operation, error) {
-        if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
-    };
     cordova.exec(function(sData){
         try{
             var oData = JSON.parse(sData);
         }catch(e){
-            return fail("parsing stored settings to JSON", e.message);
+            return fail(onError, "parsing stored settings to JSON", e.message);
         }
         try{
             onSuccess(oData);
         }catch(e){
-            return fail("calling success callback", e.message);
+            return fail(onError, "calling success callback", e.message);
         }
-    }, fail.bind(this, "loading stored settings"), 'CloudSettingsPlugin', 'load', []);
+    }, fail.bind(this, onError, "loading stored settings"), 'CloudSettingsPlugin', 'load', []);
 };
 
 cloudsettings.save = function(settings, onSuccess, onError, overwrite){
     if(typeof settings !== "object" || typeof settings.length !== "undefined") throw "settings must be a key/value object!";
-
-    var fail = function (operation, error) {
-        if (onError) onError("CloudSettingsPlugin ERROR " + operation + ": " + error);
-    };
 
     var doSave = function(){
         settings.timestamp = (new Date()).valueOf();
         try{
             var data = JSON.stringify(settings);
         }catch(e){
-            return fail("convert settings to JSON", e.message);
+            return fail(onError, "convert settings to JSON", e.message);
         }
         cordova.exec(function(){
             try{
                 onSuccess(settings);
             }catch(e){
-                return fail("calling success callback", e.message);
+                return fail(onError, "calling success callback", e.message);
             }
-        }, fail.bind(this, "saving settings"), 'CloudSettingsPlugin', 'save', [data]);
+        }, fail.bind(this, onError, "saving settings"), 'CloudSettingsPlugin', 'save', [data]);
     };
 
     if(overwrite){
