@@ -30,5 +30,6 @@
   "dependencies": {
     "xml2js": "^0.4.9"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "types": "./cordova-plugin-cloud-settings.d.ts"
 }

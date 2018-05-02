@@ -20,6 +20,7 @@ A Cordova plugin for Android & iOS to persist user settings in cloud storage acr
   - [`save()`](#save)
   - [`load()`](#load)
   - [`onRestore()`](#onrestore)
+  - [`enableDebug()`](#enabledebug)
 - [Testing](#testing)
   - [Testing Android](#testing-android)
   - [Testing iOS](#testing-ios)
@@ -138,6 +139,7 @@ Notes:
 ### Parameters
 - {object} settings - a JSON structure representing the user settings to save to cloud backup.
 - {function} successCallback - (optional) callback function to invoke on successfuly saving settings and scheduling for backup.
+Will be passed a single object argument which contains the saved settings as a JSON object.
 - {function} errorCallback - (optional) callback function to invoke on failure to save settings or schedule for backup.
 Will be passed a single string argument which contains a description of the error.
 - {boolean} overwrite - (optional) if true, existing settings will be replaced rather than updated. Defaults to false.
@@ -203,6 +205,21 @@ If necessary, this can be used for conflict resolution.
 ```javascript
 cordova.plugin.cloudsettings.onRestore(function(){
     console.log("Settings have been updated from the cloud");
+});
+```
+
+## `enableDebug()`
+
+`cordova.plugin.cloudsettings.enableDebug(successCallback);`
+
+Outputs verbose log messages from the native plugin components to the JS console.
+
+### Parameters
+- {function} successCallback - callback function to invoke when debug mode has been enabled
+
+```javascript
+cordova.plugin.cloudsettings.enableDebug(function(){
+    console.log("Debug mode enabled");
 });
 ```
 
