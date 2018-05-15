@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <include domain="sharedpref" path=""/>
-    <include domain="root" path=""/>
-    <include domain="database" path=""/>
-    <include domain="external" path=""/>
+    <exclude domain="sharedpref"/>
+    <exclude domain="root"/>
+    <exclude domain="database"/>
+    <exclude domain="external"/>
+    <exclude domain="file" />
     <include domain="file" path="cloudsettings.json"/>
 </full-backup-content>
