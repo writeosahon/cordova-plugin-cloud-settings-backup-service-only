@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-cloud-settings",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Cordova plugin for Android & iOS to persist user settings in cloud storage across devices and installs.",
   "author": "Dave Alden",
   "license": "MIT",
