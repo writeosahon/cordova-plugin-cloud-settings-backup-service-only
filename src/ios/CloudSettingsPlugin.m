@@ -116,7 +116,7 @@ static NSString*const javascriptNamespace = @"cordova.plugin.cloudsettings";
                 break;
         }
         [self d:[NSString stringWithFormat:@"iCloud notification received: %@", msg]];
-        [self jsCallbackWithArguments:@"_onRestore" :msg];
+        [self jsCallbackWithArguments:@"'_onRestore'" :[NSString stringWithFormat:@"'%@'", msg]];
     }@catch (NSException *exception) {
         [self e:exception.reason];
     }
