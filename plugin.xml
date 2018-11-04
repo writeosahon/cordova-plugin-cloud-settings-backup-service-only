@@ -34,14 +34,16 @@
             <clobbers target="cordova.plugin.cloudsettings" />
         </js-module>
 
-        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+       <!-- <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <meta-data android:name="com.google.android.backup.api_key" android:value="$ANDROID_BACKUP_SERVICE_KEY" />
-        </config-file>
+        </config-file> -->
 
         <edit-config file="AndroidManifest.xml" target="/manifest/application" mode="overwrite">
             <application xmlns:tools="http://schemas.android.com/tools"
                     android:allowBackup="true"
-                    android:backupAgent="cordova.plugin.cloudsettings.BackupAgentHelper" tools:node="merge" />
+                    android:backupAgent="cordova.plugin.cloudsettings.BackupAgentHelper" tools:node="merge" >
+                    <meta-data android:name="com.google.android.backup.api_key" android:value="$ANDROID_BACKUP_SERVICE_KEY" />
+            </application>
         </edit-config>
 
         <resource-file src="src/android/backup_rules.xml" target="res/xml/backup_rules.xml" />
