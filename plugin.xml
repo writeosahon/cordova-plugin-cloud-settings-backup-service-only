@@ -38,14 +38,6 @@
             <meta-data android:name="com.google.android.backup.api_key" android:value="$ANDROID_BACKUP_SERVICE_KEY" />
         </config-file>
 
-        <!--<edit-config file="AndroidManifest.xml" target="/manifest/application" mode="overwrite">
-            <application xmlns:tools="http://schemas.android.com/tools"
-                    android:allowBackup="true"
-                    android:backupAgent="cordova.plugin.cloudsettings.BackupAgentHelper" tools:node="merge" >
-                    <meta-data android:name="com.google.android.backup.api_key" android:value="$ANDROID_BACKUP_SERVICE_KEY" />
-            </application>
-        </edit-config>-->
-
         <resource-file src="src/android/backup_rules.xml" target="res/xml/backup_rules.xml" />
         <source-file src="src/android/CloudSettingsPlugin.java" target-dir="src/cordova/plugin/cloudsettings" />
         <source-file src="src/android/BackupAgentHelper.java" target-dir="src/cordova/plugin/cloudsettings" />
